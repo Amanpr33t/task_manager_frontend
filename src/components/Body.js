@@ -68,8 +68,8 @@ function Body() {
                 throw new Error('Some error occured')
             }
         } catch (error) {
-            dispatch(LoadingActions.setLoading(false))
             console.log(error)
+            dispatch(LoadingActions.setLoading(false))
         }
     }, [authToken, query, dispatch])
 

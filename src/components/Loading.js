@@ -5,8 +5,8 @@ function Loading() {
     const isLoading = useSelector(state => state.Loading.isLoading)
     return (
         <React.Fragment>
-             {isLoading&&<div className="loading_container">
-                 <p>Loading...</p>
+            {isLoading && <div className="loading_container">
+                <p>Loading...</p>
             </div>}
         </React.Fragment>
     )

@@ -9,11 +9,10 @@ import LoginSignUp from './components/LoginSignUp';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import Loading from './components/Loading';
 import ErrorModal from './components/ErrorModal';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { BlurActions } from './store/slices/blur_slice';
 import { ErrorModalActions } from './store/slices/errorModal_slice';
 import { DeleteTasksActions } from './store/slices/deleteTasks';
-import { FiltersAppliedActions } from './store/slices/filtersApplied-slice';
 import { ResetCheckboxActions } from './store/slices/resetCheckbox-slice';
 
 function App() {
@@ -27,19 +26,18 @@ function App() {
     isDateList: false,
     isStatus: false
   })
-
+  const authToken=localStorage.getItem('task_auth_token')
+ 
   useEffect(() => {
-    if (localStorage.getItem('task_auth_token')) {
-      navigate('/', { replace: true })
-    } else {
+    if (!authToken) {
       navigate('/login_signUp')
-    }
-  }, [navigate])
+    } 
+  }, [navigate,authToken])
 
   const appClick = () => {
     dispatch(ResetCheckboxActions.setResetCheckbox(true))
     dispatch(DeleteTasksActions.setDeleteTasks(false))
-    if (localStorage.getItem('task_auth_token')) {
+    if (authToken) {
       if (filterEnabler.isFilters) {
         setFilterEnabler({
           isFilters: false,

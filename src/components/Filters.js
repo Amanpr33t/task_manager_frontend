@@ -14,7 +14,7 @@ function Filters(props) {
     const { filterEnabler, filterSetterFunction } = props
     const isDeleteTasks = useSelector(state => state.DeleteTasks.isDeleteTasks)
     const isFiltersApplied = useSelector(state => state.FiltersApplied.isFiltersApplied)
-    const isTaskData=useSelector(state => state.TaskData.isTaskData)
+    const isTaskData = useSelector(state => state.TaskData.isTaskData)
     const [daysInMonth, setDaysInMonth] = useState(oddDays)
     const [isLeapYear, setIsLeapYear] = useState(false)
     const isLoading = useSelector(state => state.Loading.isLoading)
@@ -165,12 +165,12 @@ function Filters(props) {
             ...allFalseFilters
         })
     }
-
+    const authToken = localStorage.getItem('task_auth_token')
     return (
         <React.Fragment>
-            {!isLoading&&<div className="filter_container" >
+            {!isLoading && <div className="filter_container" >
                 {!isDeleteTasks && <div className="button_container">
-                    {!isFiltersApplied && isTaskData &&<button onClick={() => {
+                    {!isFiltersApplied && isTaskData && <button onClick={() => {
                         filterSetterFunction({
                             isFilters: true,
                             ...allFalseFilters
@@ -178,7 +178,7 @@ function Filters(props) {
                         dispatch(FiltersAppliedActions.setFiltersApplied(false))
                     }
                     } >Filters</button>}
-                    {!filterEnabler.isFilters && !isFiltersApplied && <button >Add task</button>}
+                    {!filterEnabler.isFilters && !isFiltersApplied && authToken && <button >Add task</button>}
                     {isFiltersApplied && <button onClick={() => {
                         dispatch(QueryActions.setQuery(''))
                         dispatch(FiltersAppliedActions.setFiltersApplied(false))
