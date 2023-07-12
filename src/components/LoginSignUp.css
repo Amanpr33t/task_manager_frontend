@@ -1,0 +1,55 @@
+.loginSignUp_container {
+    margin-top: 80px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    
+}
+
+.loginSignUp_container form {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    margin: 10px 14px 10px 10px
+}
+
+.loginSignUp_container form label {
+    font-size: 17px;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+.email_input,.password_input {
+    height: 25px;
+    font-size: 15px;
+    width: 100%;
+    padding:0px;
+}
+.loginSignUpButton{
+    display: flex;
+    justify-content: center;
+}
+.loginSignUpButton button{
+    padding: 3px;
+    font-size: 17px;
+    margin-top: 20px;
+}
+.loginSignUpButton button:hover{
+    cursor: pointer;
+}
+.error_input{
+    margin-top: 0px;
+    margin-bottom: 0px;
+    color: red;
+}
+.blur {
+    filter: blur(3px);
+}
+
+@media screen and (max-width:460px) {
+    .email_input,.password_input {
+        height: 25px;
+        font-size: 15px;
+        width: 100%;
+    }
+}
