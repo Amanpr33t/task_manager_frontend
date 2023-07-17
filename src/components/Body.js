@@ -1,5 +1,5 @@
 import './Body.css'
-import React, { useEffect,useCallback,useState } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import { FaTrash } from "react-icons/fa";
 import { AiFillEdit } from "react-icons/ai";
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,13 +18,13 @@ import dateMaker from '../utils/dateMaker';
 import useStateReset from '../hooks/useStateReset';
 
 function Body() {
-    
+
     const authToken = localStorage.getItem('task_auth_token')
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const [taskData, setTaskData] = useState()
     const [selectedTasks, setSelectedTasks] = useState('')
-    
+
     const isBlur = useSelector(state => state.Blur.isBlur)
     const isDeleteTasks = useSelector(state => state.DeleteTasks.isDeleteTasks)
     const isLogoutClick = useSelector(state => state.LogoutClick.isLogoutClick)
@@ -48,7 +48,7 @@ function Body() {
         }
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         dispatch(AddTaskActions.setAddTask(false))
         dispatch(FiltersAppliedActions.setFiltersApplied(false))
         dispatch(EditActions.setEdit({
@@ -57,8 +57,8 @@ function Body() {
             completionDate: null,
             taskId: null
         }))
-    },[dispatch])
-        
+    }, [dispatch])
+
 
     const resetCheckboxFunction = useCallback(() => {
         selectedTasks.split('$').splice(1, selectedTasks.split('$').length).map(taskId => {
@@ -95,8 +95,7 @@ function Body() {
             if (data.status === 'session_expired') {
                 navigate('/login_signUp', { replace: true })
                 dispatch(LogoutClickActions.setLogoutClick(true))
-            }
-            if (data.status === 'ok') {
+            } else if (data.status === 'ok') {
                 dispatch(LoadingActions.setLoading(false))
                 if (query) {
                     dispatch(FiltersAppliedActions.setFiltersApplied(true))
@@ -111,7 +110,6 @@ function Body() {
                 throw new Error('Some error occured')
             }
         } catch (error) {
-            console.log(error)
             dispatch(LoadingActions.setLoading(false))
             dispatch(ErrorModalActions.setErrorModal({
                 isErrorModal: true,
@@ -127,7 +125,7 @@ function Body() {
             fetchTasks()
         }
     }, [fetchTasks, isLogoutClick])
- 
+
 
     const deleteTask = async (tasks) => {
         dispatch(LoadingActions.setLoading(true))
@@ -198,7 +196,7 @@ function Body() {
         }
     }
 
-   
+
 
     return (
         <React.Fragment>
@@ -213,7 +211,7 @@ function Body() {
                         <p className={`task-status ${task.status}`}>{task.status}</p>
                         <input type="checkbox" id={task._id} onChange={e => {
                             checkBoxHandler(task._id, e)
-                        }} name="task_checkbox" onClick={() =>  dispatch(ResetCheckboxActions.setResetCheckbox(false))}></input>
+                        }} name="task_checkbox" onClick={() => dispatch(ResetCheckboxActions.setResetCheckbox(false))}></input>
                         <p className='task-content'>{task.taskInfo}</p>
                         <div className='completion_date'>
                             <p>Completion Date:</p>
@@ -226,7 +224,7 @@ function Body() {
                                     isEdit: true,
                                     taskInfo: task.taskInfo,
                                     completionDate: task.completionDate,
-                                    taskId:task._id
+                                    taskId: task._id
                                 }))
                                 navigate('/task_form', { replace: true })
                             }}><AiFillEdit /></button>

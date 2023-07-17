@@ -34,7 +34,6 @@ function App() {
     }
   }, [navigate, authToken])
 
-
   const appClick = () => {
     dispatch(ResetCheckboxActions.setResetCheckbox(true))
     dispatch(DeleteTasksActions.setDeleteTasks(false))

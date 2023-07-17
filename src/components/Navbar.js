@@ -62,7 +62,7 @@ const Navbar = () => {
         dispatch(AddTaskActions.setAddTask(false))
         dispatch(QueryActions.setQuery(''))
     }
-    
+
     return (
         <React.Fragment>
             <nav className="nav-container">
