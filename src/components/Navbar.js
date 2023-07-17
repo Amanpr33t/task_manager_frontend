@@ -11,7 +11,6 @@ import { LoadingActions } from "../store/slices/loading-slice";
 import { QueryActions } from "../store/slices/query_slice";
 import { LogoutClickActions } from "../store/slices/logoutClick_slice";
 import { AddTaskActions } from "../store/slices/addTask-slice";
-import useStateReset from "../hooks/useStateReset";
 
 const Navbar = () => {
     const navigate = useNavigate()

@@ -58,8 +58,8 @@ function App() {
       <Routes>
         {authToken && <Route path='/' element={<Body />}></Route>}
         {authToken && <Route path='/task_form' element={<TaskForm />}></Route>}
-        <Route path='/login_signUp' element={<LoginSignUp />}></Route>
-        <Route path='*' element={<Navigate replace to={authToken ? '/' : '/login_signUp'} />}></Route>
+        {!authToken && <Route path='/login_signUp' element={<LoginSignUp />}></Route>}
+        <Route path='*' element={<Navigate replace to='/' />}></Route>
       </Routes>
       <Loading />
       <ErrorModal />

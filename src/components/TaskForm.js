@@ -24,6 +24,12 @@ function TaskForm() {
     const [content, setContent] = useState('')
     const [isContentBlur, setIsContentBlur] = useState(false)
     const [dateError, setDateError] = useState(false)
+
+    useEffect(() => {
+        if (!authToken) {
+          navigate('/login_signUp',{ replace: true })
+        }
+      }, [navigate, authToken])
     
     useEffect(() => {
         dispatch(FiltersAppliedActions.setFiltersApplied(false))

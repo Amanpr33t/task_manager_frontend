@@ -23,7 +23,6 @@ function Filters(props) {
     const isFiltersApplied = useSelector(state => state.FiltersApplied.isFiltersApplied)
     const isTaskData = useSelector(state => state.TaskData.isTaskData)
     const isLoading = useSelector(state => state.Loading.isLoading)
-    const isBlur = useSelector(state => state.Blur.isBlur)
 
     const [daysInMonth, setDaysInMonth] = useState(oddDays)
     const [isLeapYear, setIsLeapYear] = useState(false)

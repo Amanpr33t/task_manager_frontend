@@ -2,7 +2,6 @@
 import { LoadingActions } from "../store/slices/loading-slice";
 import { BlurActions } from "../store/slices/blur_slice";
 import { ErrorModalActions } from "../store/slices/errorModal_slice";
-import { LogoutClickActions } from "../store/slices/logoutClick_slice";
 import { DeleteTasksActions } from "../store/slices/deleteTasks";
 import { FiltersActions } from "../store/slices/filters-slice";
 import { FiltersAppliedActions } from "../store/slices/filtersApplied-slice";

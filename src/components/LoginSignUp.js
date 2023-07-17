@@ -19,7 +19,6 @@ function LoginSignUp() {
     const [isPasswordBlur, setIsPasswordBlur] = useState(false)
     const isLogin = useSelector(state => state.Login.isLogin)
     const isBlur = useSelector(state => state.Blur.isBlur)
-    const isLoading = useSelector(state => state.Loading.isLoading)
     const isLogoutClick = useSelector(state => state.LogoutClick.isLogoutClick)
     const authToken = localStorage.getItem('task_auth_token')
 
@@ -34,13 +33,13 @@ function LoginSignUp() {
         if (isLogoutClick) {
             stateReset()
         }
-    }, [isLogoutClick])
+    }, [isLogoutClick, stateReset])
 
     useEffect(() => {
         if (authToken) {
-            navigate('/', { replace: true })
+          navigate('/',{ replace: true })
         }
-    }, [stateReset])
+      }, [navigate, authToken])
 
     const formSubmit = async (e) => {
         e.preventDefault()
@@ -51,47 +50,47 @@ function LoginSignUp() {
             setIsEmailBlur(true)
         }
         if (validator.isEmail(email) && password.length >= 6 && password.length <= 10) {
-                try {
-                    dispatch(LoadingActions.setLoading(true))
-                    dispatch(BlurActions.setBlur(true))
-                    const response = await fetch(`http://localhost:3001/user/${isLogin ? 'login' : 'signup'}`, {
-                        method: 'POST',
-                        body: JSON.stringify({ email, password }),
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                    if (!response.ok) {
-                        throw new Error('Some error occured')
+            try {
+                dispatch(LoadingActions.setLoading(true))
+                dispatch(BlurActions.setBlur(true))
+                const response = await fetch(`http://localhost:3001/user/${isLogin ? 'login' : 'signup'}`, {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password }),
+                    headers: {
+                        'Content-Type': 'application/json'
                     }
-                    const data = await response.json()
-                    if (data.status && data.status === 'duplicate') {
-                        dispatch(LoadingActions.setLoading(false))
-                        dispatch(ErrorModalActions.setErrorModal({
-                            isErrorModal: true,
-                            message: 'User with this email already exists. Please use another email.'
-                        }))
-                    } else if (data.status && data.status === 'not_found') {
-                        console.log('not_found')
-                        dispatch(LoadingActions.setLoading(false))
-                        dispatch(ErrorModalActions.setErrorModal({
-                            isErrorModal: true,
-                            message: 'User credentials are incorrect. Please try again.'
-                        }))
-                    } else if (data.status && data.status === 'ok') {
-                        localStorage.setItem('task_auth_token', data.authToken)
-                        navigate('/', { replace: true })
-                        dispatch(BlurActions.setBlur(false))
-                        dispatch(LogoutClickActions.setLogoutClick(false))
-                    }
-                } catch (error) {
+                })
+                if (!response.ok) {
+                    throw new Error('Some error occured')
+                }
+                const data = await response.json()
+                if (data.status && data.status === 'duplicate') {
                     dispatch(LoadingActions.setLoading(false))
                     dispatch(ErrorModalActions.setErrorModal({
                         isErrorModal: true,
-                        message: 'Some error occured.'
+                        message: 'User with this email already exists. Please use another email.'
                     }))
-                    dispatch(BlurActions.setBlur(true))
+                } else if (data.status && data.status === 'not_found') {
+                    console.log('not_found')
+                    dispatch(LoadingActions.setLoading(false))
+                    dispatch(ErrorModalActions.setErrorModal({
+                        isErrorModal: true,
+                        message: 'User credentials are incorrect. Please try again.'
+                    }))
+                } else if (data.status && data.status === 'ok') {
+                    localStorage.setItem('task_auth_token', data.authToken)
+                    navigate('/', { replace: true })
+                    dispatch(BlurActions.setBlur(false))
+                    dispatch(LogoutClickActions.setLogoutClick(false))
                 }
+            } catch (error) {
+                dispatch(LoadingActions.setLoading(false))
+                dispatch(ErrorModalActions.setErrorModal({
+                    isErrorModal: true,
+                    message: 'Some error occured.'
+                }))
+                dispatch(BlurActions.setBlur(true))
+            }
         }
     }
 

@@ -15,7 +15,6 @@ import { LogoutClickActions } from '../store/slices/logoutClick_slice';
 import { AddTaskActions } from '../store/slices/addTask-slice';
 import { EditActions } from '../store/slices/edit-slice';
 import dateMaker from '../utils/dateMaker';
-import useStateReset from '../hooks/useStateReset';
 
 function Body() {
 
@@ -49,6 +48,12 @@ function Body() {
     }
 
     useEffect(() => {
+        if (!authToken) {
+          navigate('/login_signUp',{ replace: true })
+        }
+      }, [navigate, authToken])
+
+    useEffect(() => {
         dispatch(AddTaskActions.setAddTask(false))
         dispatch(FiltersAppliedActions.setFiltersApplied(false))
         dispatch(EditActions.setEdit({
@@ -75,7 +80,7 @@ function Body() {
         if (isResetCheckbox) {
             resetCheckboxFunction()
         }
-    }, [isResetCheckbox])
+    }, [isResetCheckbox, resetCheckboxFunction])
 
     const fetchTasks = useCallback(async () => {
         dispatch(LoadingActions.setLoading(true))
@@ -117,7 +122,7 @@ function Body() {
             }))
             dispatch(BlurActions.setBlur(true))
         }
-    }, [authToken, query, dispatch])
+    }, [authToken, query, dispatch, navigate])
 
 
     useEffect(() => {
