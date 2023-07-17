@@ -1,16 +1,16 @@
-import React from "react";
 import './LoginSignUp.css'
-import { useSelector } from "react-redux/es/hooks/useSelector";
-import { useDispatch } from "react-redux";
-import { useState } from "react";
 import validator from "validator";
+import { useDispatch, useSelector } from "react-redux";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoadingActions } from "../store/slices/loading-slice";
 import { BlurActions } from "../store/slices/blur_slice";
 import { ErrorModalActions } from "../store/slices/errorModal_slice";
+import { LogoutClickActions } from "../store/slices/logoutClick_slice";
+import useStateReset from "../hooks/useStateReset";
 
 function LoginSignUp() {
-
+    const { stateReset } = useStateReset()
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const [email, setEmail] = useState('')
@@ -19,44 +19,79 @@ function LoginSignUp() {
     const [isPasswordBlur, setIsPasswordBlur] = useState(false)
     const isLogin = useSelector(state => state.Login.isLogin)
     const isBlur = useSelector(state => state.Blur.isBlur)
+    const isLoading = useSelector(state => state.Loading.isLoading)
+    const isLogoutClick = useSelector(state => state.LogoutClick.isLogoutClick)
+    const authToken = localStorage.getItem('task_auth_token')
+
+    useEffect(() => {
+        setEmail('')
+        setPassword('')
+        setIsEmailBlur(false)
+        setIsPasswordBlur(false)
+    }, [isLogin])
+
+    useEffect(() => {
+        if (isLogoutClick) {
+            stateReset()
+        }
+    }, [isLogoutClick])
+
+    useEffect(() => {
+        if (authToken) {
+            navigate('/', { replace: true })
+        }
+    }, [stateReset])
 
     const formSubmit = async (e) => {
         e.preventDefault()
+        if (password.length < 6 || password.length > 10) {
+            setIsPasswordBlur(true)
+        }
+        if (email === '') {
+            setIsEmailBlur(true)
+        }
         if (validator.isEmail(email) && password.length >= 6 && password.length <= 10) {
-            try {
-                const response = await fetch(`http://localhost:3001/user/${isLogin ? 'login' : 'signup'}`, {
-                    method: 'POST',
-                    body: JSON.stringify({ email, password }),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                if (!response.ok) {
-                    throw new Error('Some error occured')
-                }
-                const data = await response.json()
-                if (data.status && data.status === 'duplicate') {
-                    dispatch(ErrorModalActions.setErrorModal({
-                        isErrorModal:true,
-                        message:'User with this email already exists. Please use another email.'
-                    }))
-                    dispatch(BlurActions.setBlur(true))
-                } else if (data.status && data.status === 'not_found') {
-                    
-                    dispatch(ErrorModalActions.setErrorModal({
-                        isErrorModal:true,
-                        message:'User credentials are incorrect. Please try again.'
-                    }))
-                    dispatch(BlurActions.setBlur(true))
-                } else if (data.status && data.status === 'ok') {
+                try {
                     dispatch(LoadingActions.setLoading(true))
-                    localStorage.setItem('task_auth_token', data.authToken)
-                    navigate('/', { replace: true })
+                    dispatch(BlurActions.setBlur(true))
+                    const response = await fetch(`http://localhost:3001/user/${isLogin ? 'login' : 'signup'}`, {
+                        method: 'POST',
+                        body: JSON.stringify({ email, password }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    if (!response.ok) {
+                        throw new Error('Some error occured')
+                    }
+                    const data = await response.json()
+                    if (data.status && data.status === 'duplicate') {
+                        dispatch(LoadingActions.setLoading(false))
+                        dispatch(ErrorModalActions.setErrorModal({
+                            isErrorModal: true,
+                            message: 'User with this email already exists. Please use another email.'
+                        }))
+                    } else if (data.status && data.status === 'not_found') {
+                        console.log('not_found')
+                        dispatch(LoadingActions.setLoading(false))
+                        dispatch(ErrorModalActions.setErrorModal({
+                            isErrorModal: true,
+                            message: 'User credentials are incorrect. Please try again.'
+                        }))
+                    } else if (data.status && data.status === 'ok') {
+                        localStorage.setItem('task_auth_token', data.authToken)
+                        navigate('/', { replace: true })
+                        dispatch(BlurActions.setBlur(false))
+                        dispatch(LogoutClickActions.setLogoutClick(false))
+                    }
+                } catch (error) {
+                    dispatch(LoadingActions.setLoading(false))
+                    dispatch(ErrorModalActions.setErrorModal({
+                        isErrorModal: true,
+                        message: 'Some error occured.'
+                    }))
+                    dispatch(BlurActions.setBlur(true))
                 }
-            } catch (error) {
-                dispatch(ErrorModalActions.setErrorModal(true))
-                dispatch(BlurActions.setBlur(true))
-            }
         }
     }
 

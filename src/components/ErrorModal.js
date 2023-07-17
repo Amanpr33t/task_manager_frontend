@@ -13,8 +13,8 @@ function ErrorModal() {
                 <div className="error_modal">
                     <div onClick={() => {
                         dispatch(ErrorModalActions.setErrorModal({
-                            isErrorModal: true,
-                            message: 'User credentials are incorrect. Please try again.'
+                            isErrorModal: false,
+                            message: ''
                         }))
                         dispatch(BlurActions.setBlur(false))
                     }}>X</div>

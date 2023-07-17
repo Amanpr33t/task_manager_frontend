@@ -1,25 +1,34 @@
 import './Body.css'
-import React, { useEffect } from 'react'
+import React, { useEffect,useCallback,useState } from 'react'
 import { FaTrash } from "react-icons/fa";
 import { AiFillEdit } from "react-icons/ai";
-import { useCallback } from 'react';
-import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { DeleteTasksActions } from '../store/slices/deleteTasks';
-import dateMaker from './utils/dateMaker';
 import { FiltersAppliedActions } from '../store/slices/filtersApplied-slice';
 import { LoadingActions } from '../store/slices/loading-slice';
 import { ResetCheckboxActions } from '../store/slices/resetCheckbox-slice';
 import { TaskDataActions } from '../store/slices/taskData-slice';
+import { ErrorModalActions } from '../store/slices/errorModal_slice';
+import { BlurActions } from '../store/slices/blur_slice';
+import { LogoutClickActions } from '../store/slices/logoutClick_slice';
+import { AddTaskActions } from '../store/slices/addTask-slice';
+import { EditActions } from '../store/slices/edit-slice';
+import dateMaker from '../utils/dateMaker';
+import useStateReset from '../hooks/useStateReset';
 
 function Body() {
+    
+    const authToken = localStorage.getItem('task_auth_token')
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const [taskData, setTaskData] = useState()
+    const [selectedTasks, setSelectedTasks] = useState('')
+    
     const isBlur = useSelector(state => state.Blur.isBlur)
     const isDeleteTasks = useSelector(state => state.DeleteTasks.isDeleteTasks)
+    const isLogoutClick = useSelector(state => state.LogoutClick.isLogoutClick)
     const query = useSelector(state => state.Query.query)
-    const authToken = localStorage.getItem('task_auth_token')
-    const [selectedTasks, setSelectedTasks] = useState('')
     const isLoading = useSelector(state => state.Loading.isLoading)
     const isResetCheckbox = useSelector(state => state.ResetCheckbox.isResetCheckbox)
 
@@ -38,6 +47,36 @@ function Body() {
             })
         }
     }
+
+    useEffect(()=>{
+        dispatch(AddTaskActions.setAddTask(false))
+        dispatch(FiltersAppliedActions.setFiltersApplied(false))
+        dispatch(EditActions.setEdit({
+            isEdit: false,
+            taskInfo: null,
+            completionDate: null,
+            taskId: null
+        }))
+    },[dispatch])
+        
+
+    const resetCheckboxFunction = useCallback(() => {
+        selectedTasks.split('$').splice(1, selectedTasks.split('$').length).map(taskId => {
+            if (document.getElementById(taskId)) {
+                return document.getElementById(taskId).checked = false
+            } else {
+                return null
+            }
+        })
+        setSelectedTasks('')
+    }, [selectedTasks])
+
+    useEffect(() => {
+        if (isResetCheckbox) {
+            resetCheckboxFunction()
+        }
+    }, [isResetCheckbox])
+
     const fetchTasks = useCallback(async () => {
         dispatch(LoadingActions.setLoading(true))
         const url = `http://localhost:3001/task/getAllTasks${query ? query : ''}`
@@ -53,14 +92,18 @@ function Body() {
                 throw new Error('Some error occured')
             }
             const data = await response.json()
+            if (data.status === 'session_expired') {
+                navigate('/login_signUp', { replace: true })
+                dispatch(LogoutClickActions.setLogoutClick(true))
+            }
             if (data.status === 'ok') {
                 dispatch(LoadingActions.setLoading(false))
                 if (query) {
                     dispatch(FiltersAppliedActions.setFiltersApplied(true))
                 }
-                if(data.count===0){
+                if (data.count === 0) {
                     dispatch(TaskDataActions.setTaskData(false))
-                }else{
+                } else {
                     dispatch(TaskDataActions.setTaskData(true))
                 }
                 setTaskData(data)
@@ -70,29 +113,21 @@ function Body() {
         } catch (error) {
             console.log(error)
             dispatch(LoadingActions.setLoading(false))
+            dispatch(ErrorModalActions.setErrorModal({
+                isErrorModal: true,
+                message: 'Some error occured.'
+            }))
+            dispatch(BlurActions.setBlur(true))
         }
     }, [authToken, query, dispatch])
 
-    const resetCheckboxFunction = useCallback(() => {
-        selectedTasks.split('$').splice(1, selectedTasks.split('$').length).map(taskId => {
-            if (document.getElementById(taskId)) {
-                return document.getElementById(taskId).checked = false
-            } else {
-                return null
-            }
-        })
-        setSelectedTasks('')
-    },[selectedTasks])
 
     useEffect(() => {
-        fetchTasks()
-    }, [fetchTasks])
-
-    useEffect(() => {
-        if (isResetCheckbox) {
-            resetCheckboxFunction()
+        if (!isLogoutClick) {
+            fetchTasks()
         }
-    }, [isResetCheckbox,resetCheckboxFunction])
+    }, [fetchTasks, isLogoutClick])
+ 
 
     const deleteTask = async (tasks) => {
         dispatch(LoadingActions.setLoading(true))
@@ -125,45 +160,13 @@ function Body() {
             }
         } catch (error) {
             dispatch(LoadingActions.setLoading(false))
-            console.log(error)
+            dispatch(ErrorModalActions.setErrorModal({
+                isErrorModal: true,
+                message: 'Some error occured.'
+            }))
+            dispatch(BlurActions.setBlur(true))
         }
     }
-
-
-    /*const dateMaker = (completionDate) => {
-        const date = new Date(completionDate)
-        const month = () => {
-            if (date.getMonth() === 0) {
-                return 'January'
-            } else if (date.getMonth() === 1) {
-                return 'February'
-            } else if (date.getMonth() === 2) {
-                return 'March'
-            } else if (date.getMonth() === 3) {
-                return 'April'
-            } else if (date.getMonth() === 4) {
-                return 'May'
-            } else if (date.getMonth() === 5) {
-                return 'June'
-            } else if (date.getMonth() === 6) {
-                console.log()
-                return 'July'
-            } else if (date.getMonth() === 7) {
-                return 'August'
-            } else if (date.getMonth() === 8) {
-                return 'September'
-            } else if (date.getMonth() === 9) {
-                return 'October'
-            } else if (date.getMonth() === 10) {
-                return 'November'
-            } else if (date.getMonth() === 11) {
-                return 'December'
-            }
-        }
-        return date.getDay().toString() + ' ' + month() + ', ' + date.getFullYear().toString()
-    }*/
-
-
 
     const editTask = async ({ taskId, taskData }) => {
         dispatch(LoadingActions.setLoading(true))
@@ -187,23 +190,30 @@ function Body() {
             }
         } catch (error) {
             dispatch(LoadingActions.setLoading(false))
-            console.log(error)
+            dispatch(ErrorModalActions.setErrorModal({
+                isErrorModal: true,
+                message: 'Some error occured.'
+            }))
+            dispatch(BlurActions.setBlur(true))
         }
     }
 
+   
+
     return (
         <React.Fragment>
-            {isDeleteTasks && <div className='delete_tasks'><button onClick={() => deleteTask(selectedTasks)}> Delete Tasks</button></div>}
+            {isDeleteTasks && <div className={`delete_tasks ${isBlur ? 'blur' : null}`} ><button onClick={() => deleteTask(selectedTasks)}>Delete Tasks</button></div>}
+
             <div className={`task_container ${isBlur ? 'blur' : null}`}>
                 {!isLoading && taskData && taskData.count === 0 && <div className="no_tasks">
                     <p>No tasks found.</p>
                 </div>}
                 {!isLoading && taskData && taskData.count > 0 && taskData.allTasks.map((task) => {
                     return <div className='task_body' key={task._id} onClick={e => e.stopPropagation()}>
-                        <p className='task-status'>{task.status}</p>
+                        <p className={`task-status ${task.status}`}>{task.status}</p>
                         <input type="checkbox" id={task._id} onChange={e => {
                             checkBoxHandler(task._id, e)
-                        }} name="task_checkbox" onClick={() => dispatch(ResetCheckboxActions.setResetCheckbox(false))}></input>
+                        }} name="task_checkbox" onClick={() =>  dispatch(ResetCheckboxActions.setResetCheckbox(false))}></input>
                         <p className='task-content'>{task.taskInfo}</p>
                         <div className='completion_date'>
                             <p>Completion Date:</p>
@@ -211,8 +221,16 @@ function Body() {
                         </div>
                         {!isDeleteTasks && <div className='task-update'>
                             <button onClick={() => deleteTask(task._id)}><FaTrash /></button>
-                            {task.status !== 'completed' && task.status !== 'cancelled' && <><button><AiFillEdit /></button>
-                                <button onClick={() => editTask({ taskId: task._id, taskData: { status: 'completed' } })}>Completed</button>
+                            {task.status !== 'completed' && task.status !== 'cancelled' && <><button onClick={() => {
+                                dispatch(EditActions.setEdit({
+                                    isEdit: true,
+                                    taskInfo: task.taskInfo,
+                                    completionDate: task.completionDate,
+                                    taskId:task._id
+                                }))
+                                navigate('/task_form', { replace: true })
+                            }}><AiFillEdit /></button>
+                                <button onClick={() => editTask({ taskId: task._id, taskData: { status: 'completed' } })} >Task Completed</button>
                                 <button onClick={() => editTask({ taskId: task._id, taskData: { status: 'cancelled' } })}>Cancel Task</button></>}
                         </div>}
                     </div>

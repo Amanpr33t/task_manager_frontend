@@ -1,10 +1,11 @@
-.task_outer_container{
+.task_outer_container {
     width: 100%;
     display: flex;
     justify-content: center;
 }
+
 .task_form {
-    margin-top: 100px;
+    margin-top: 110px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -21,6 +22,7 @@
     flex-direction: column;
     gap: 3px;
     width: 100%;
+    margin-left: -1px;
 }
 
 .text_input {
@@ -28,25 +30,42 @@
     outline: none;
     resize: none;
     border: 1px solid grey;
+    padding: 0px;
 }
 
-.task_form form label, .date_label{
+.task_form form label,
+.date_label {
     font-size: 18px;
     font-weight: 600;
 }
 
-.task_button{
+.task_form form p,.date_selector p {
+    color: red;
+    margin: 0px
+}
+
+.blur {
+    filter: blur(3px);
+}
+
+.task_button {
     width: 100%;
     display: flex;
     justify-content: center;
 }
-.task_button button{
+
+.task_button button {
     font-size: 15px;
     padding: 5px 2px 5px 2px;
     font-weight: 600;
 }
-.task_button button:hover{
+
+.task_button button:hover {
     cursor: pointer;
 }
-
-
+.date_picker{
+    width: 166px;
+}
+@media screen and (max-width:434px) {
+    
+}

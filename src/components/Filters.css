@@ -1,6 +1,6 @@
 .filter_container{
     position: fixed;
-    top: 65px;
+    top: 70px;
     left:10px;
     display: flex;
     flex-direction: column;
@@ -13,6 +13,7 @@
 }
 .button_container button{
     background-color: gray;
+    color:white;
     border: none;
     border-radius: 5px;
     font-size: 18px;
@@ -29,6 +30,9 @@
     width: 60px;
     padding-bottom: 4px;
     padding-right: 5px;
+    font-weight: 600;
+    font-size: 16px;
+    color:black
 }
 .filter_container button:hover,.dropdown:hover{
     cursor: pointer;
@@ -45,7 +49,8 @@
 }
 .filter_heading{
   padding: 3px;
-  background-color: aqua;
+  background-color: rgb(80, 108, 222);
+  color:white;
   border-radius: 5px;
   z-index: 0;
 }
@@ -53,7 +58,8 @@
 .sort_content, .year_content, .month_content, .date_content,.status_content{
     position: absolute;
     top:27px;
-    background-color: yellow;
+    background-color: gray;
+    color: white;
     max-height: 120px;
     white-space: nowrap;
     z-index: 1;
@@ -68,7 +74,7 @@
     padding: 5px;
 }
 .sort_content div:hover, .year_content div:hover, .month_content div:hover, .date_content div:hover, .status_content div:hover{
-    background-color: rgb(173, 173, 93);
+    background-color: rgb(165, 164, 164)
 }
 .selected_filters{
     display: flex;
@@ -83,6 +89,7 @@
     align-items: center;
     flex-direction: row;
     background-color: rgb(50, 121, 142);
+    color: white;
     height: 25px;
     padding-bottom: 3px;
 }

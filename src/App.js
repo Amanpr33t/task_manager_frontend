@@ -1,4 +1,3 @@
-
 import './App.css';
 import Navbar from './components/Navbar';
 import Filters from './components/Filters';
@@ -14,6 +13,7 @@ import { BlurActions } from './store/slices/blur_slice';
 import { ErrorModalActions } from './store/slices/errorModal_slice';
 import { DeleteTasksActions } from './store/slices/deleteTasks';
 import { ResetCheckboxActions } from './store/slices/resetCheckbox-slice';
+import { Navigate } from 'react-router-dom';
 
 function App() {
   const dispatch = useDispatch()
@@ -26,31 +26,29 @@ function App() {
     isDateList: false,
     isStatus: false
   })
-  const authToken=localStorage.getItem('task_auth_token')
- 
+  const authToken = localStorage.getItem('task_auth_token')
+
   useEffect(() => {
     if (!authToken) {
       navigate('/login_signUp')
-    } 
-  }, [navigate,authToken])
+    }
+  }, [navigate, authToken])
+
 
   const appClick = () => {
     dispatch(ResetCheckboxActions.setResetCheckbox(true))
     dispatch(DeleteTasksActions.setDeleteTasks(false))
-    if (authToken) {
-      if (filterEnabler.isFilters) {
-        setFilterEnabler({
-          isFilters: false,
-          isSortList: false,
-          isYearList: false,
-          isMonthList: false,
-          isDateList: false,
-          isStatus: false
-        })
-      }
-    } else {
-      dispatch(ErrorModalActions.setErrorModal(false))
-      dispatch(BlurActions.setBlur(false))
+    dispatch(ErrorModalActions.setErrorModal(false))
+    dispatch(BlurActions.setBlur(false))
+    if (authToken && filterEnabler.isFilters) {
+      setFilterEnabler({
+        isFilters: false,
+        isSortList: false,
+        isYearList: false,
+        isMonthList: false,
+        isDateList: false,
+        isStatus: false
+      })
     }
   }
 
@@ -59,9 +57,10 @@ function App() {
       <Navbar />
       <Filters filterEnabler={filterEnabler} filterSetterFunction={(data) => setFilterEnabler(data)} />
       <Routes>
-        <Route path='/' element={ <Body />}></Route>
-        <Route path='/task_form' element={<TaskForm />}></Route>
+        {authToken && <Route path='/' element={<Body />}></Route>}
+        {authToken && <Route path='/task_form' element={<TaskForm />}></Route>}
         <Route path='/login_signUp' element={<LoginSignUp />}></Route>
+        <Route path='*' element={<Navigate replace to={authToken ? '/' : '/login_signUp'} />}></Route>
       </Routes>
       <Loading />
       <ErrorModal />

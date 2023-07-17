@@ -19,8 +19,9 @@
 .task_body {
     position: relative;
     width: 400px;
-    background-color: violet;
+    background-color: rgb(234, 208, 234);
     margin-bottom: 50px;
+    border-radius: 5px;
 }
 
 .task-status {
@@ -29,22 +30,30 @@
     left: 0px;
     background-color: greenyellow;
     padding: 3px;
+    color:white;
+    border-radius: 5px;
 }
 
 .task-content {
     padding-left: 5px;
     padding-right: 5px;
     margin-top: 23px;
+    font-size: 18px;
+    font-weight: 400;
 }
 
 .completion_date p {
     margin-top: 0px;
     padding-left: 5px;
     padding-right: 5px;
+    font-size: 16px;
 }
 
 .completion_date p:nth-child(1) {
-    font-size: 17px;
+    font-weight: 600;
+}
+.completion_date p:nth-child(2) {
+    font-weight: 400;
 }
 
 .task_body input {
@@ -73,11 +82,14 @@
 
 .delete_tasks {
     position: fixed;
-    top: 70px;
+    top: 60px;
     width: 100%;
     display: flex;
     justify-content: center;
     z-index: 1;
+    background-color: white;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 .delete_tasks button {
@@ -85,19 +97,52 @@
     border: none;
     border-radius: 5px;
     font-size: 18px;
-    padding: 3px
+    padding: 3px;
+    color: white;
 }
-.delete_tasks button:hover{
+
+.delete_tasks button:hover {
     cursor: pointer;
 }
-.no_tasks{
+
+.no_tasks {
     width: 100%;
     display: flex;
     justify-content: center;
 }
-.no_tasks p{
+
+.no_tasks p {
     position: fixed;
     top: 130px;
+}
+
+.task-update button:nth-child(3) {
+    background-color: green;
+}
+
+.task-update button:nth-child(4) {
+    background-color: red;
+}
+
+.task-update button:nth-child(4),
+.task-update button:nth-child(3) {
+    color: white;
+    border: none;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-radius: 5px;
+}
+.completed{
+    background-color: green;
+}
+.delayed{
+    background-color: red;
+}
+.pending{
+    background-color: orange;
+}
+.cancelled{
+    background-color: gray;
 }
 
 

@@ -4,20 +4,29 @@ import { useDispatch, useSelector } from "react-redux";
 import { BlurActions } from "../store/slices/blur_slice";
 import { QueryActions } from "../store/slices/query_slice";
 import { FiltersAppliedActions } from "../store/slices/filtersApplied-slice";
+import { useNavigate } from "react-router-dom";
+import { AddTaskActions } from "../store/slices/addTask-slice";
 
 function Filters(props) {
+    const authToken = localStorage.getItem('task_auth_token')
+    const { filterEnabler, filterSetterFunction } = props
+    const navigate = useNavigate()
     const dispatch = useDispatch()
+
     const oddDays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
     const evenDays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     const leapDays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     const nonLeapDays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
-    const { filterEnabler, filterSetterFunction } = props
+
     const isDeleteTasks = useSelector(state => state.DeleteTasks.isDeleteTasks)
+    const isAddTask = useSelector(state => state.AddTask.isAddTask)
     const isFiltersApplied = useSelector(state => state.FiltersApplied.isFiltersApplied)
     const isTaskData = useSelector(state => state.TaskData.isTaskData)
+    const isLoading = useSelector(state => state.Loading.isLoading)
+    const isBlur = useSelector(state => state.Blur.isBlur)
+
     const [daysInMonth, setDaysInMonth] = useState(oddDays)
     const [isLeapYear, setIsLeapYear] = useState(false)
-    const isLoading = useSelector(state => state.Loading.isLoading)
     const [appliedFilters, setAppliedFilters] = useState({
         sort: null,
         year: null,
@@ -53,12 +62,15 @@ function Filters(props) {
         } else {
             dispatch(BlurActions.setBlur(true))
         }
+    }, [filterEnabler.isFilters, dispatch])
+
+    useEffect(() => {
         if (appliedFilters.sort || appliedFilters.year || appliedFilters.month || appliedFilters.date || appliedFilters.status) {
             setApplyButton(true)
         } else {
             setApplyButton(false)
         }
-    }, [filterEnabler.isFilters, dispatch, appliedFilters.sort, appliedFilters.year, appliedFilters.month, appliedFilters.date, appliedFilters.status])
+    }, [appliedFilters.sort, appliedFilters.year, appliedFilters.month, appliedFilters.date, appliedFilters.status])
 
     const yearClick = (data) => {
         if (data.year === 2024 || data.year === 2028) {
@@ -119,11 +131,11 @@ function Filters(props) {
                 return 'month=11'
             }
         }
-        const sortQuery = appliedFilters.sort ? `sort=${appliedFilters.sort}` : ''
+        const sortQuery = appliedFilters.sort ? `sort=${appliedFilters.sort.toLowerCase()}` : ''
         const yearQuery = appliedFilters.year ? `year=${appliedFilters.year}` : ''
         const monthQuery = appliedFilters.month ? monthNumber() : ''
         const dateQuery = appliedFilters.date ? `date=${appliedFilters.date}` : ''
-        const statusQuery = appliedFilters.status ? `status=${appliedFilters.status}` : ''
+        const statusQuery = appliedFilters.status ? `status=${appliedFilters.status.toLowerCase()}` : ''
         let query = `?${sortQuery}&${yearQuery}&${monthQuery}&${dateQuery}&${statusQuery}`
         if (query === '?&&&&') {
             query = ''
@@ -165,12 +177,13 @@ function Filters(props) {
             ...allFalseFilters
         })
     }
-    const authToken = localStorage.getItem('task_auth_token')
+
     return (
         <React.Fragment>
-            {!isLoading && <div className="filter_container" >
+            {!isLoading && <div className={`filter_container`} >
                 {!isDeleteTasks && <div className="button_container">
-                    {!isFiltersApplied && isTaskData && <button onClick={() => {
+                    {!isFiltersApplied && isTaskData && !isAddTask && <button onClick={(e) => {
+                        e.stopPropagation()
                         filterSetterFunction({
                             isFilters: true,
                             ...allFalseFilters
@@ -178,11 +191,24 @@ function Filters(props) {
                         dispatch(FiltersAppliedActions.setFiltersApplied(false))
                     }
                     } >Filters</button>}
-                    {!filterEnabler.isFilters && !isFiltersApplied && authToken && <button >Add task</button>}
-                    {isFiltersApplied && <button onClick={() => {
+
+                    {!filterEnabler.isFilters && !isFiltersApplied && !isAddTask && authToken && <button onClick={() => navigate('/task_form', { replace: true })}>Add task</button>}
+
+                    {isFiltersApplied && !isAddTask && <button onClick={() => {
                         dispatch(QueryActions.setQuery(''))
+                        dispatch(AddTaskActions.setAddTask(false))
                         dispatch(FiltersAppliedActions.setFiltersApplied(false))
+                        filterSetterFunction({
+                            isFilters: false,
+                            isSortList: false,
+                            isYearList: false,
+                            isMonthList: false,
+                            isDateList: false,
+                            isStatus: false
+                        })
                     }}>Remove Filters</button>}
+
+                    {isAddTask && <button onClick={() => navigate('/', { replace: true })}>Back to Home</button>}
                 </div>}
 
                 {filterEnabler.isFilters &&
@@ -202,18 +228,17 @@ function Filters(props) {
                                         isSortList: true
                                     })
                                 }
-
                             }} >Sort</div>
                             {filterEnabler.isSortList && <div className="sort_content" >
                                 <div onClick={() => {
                                     setAppliedFilters((filters) => {
-                                        return { ...filters, sort: 'new' }
+                                        return { ...filters, sort: 'New' }
                                     })
                                     filterReset()
                                 }}>New to Old</div>
                                 <div onClick={() => {
                                     setAppliedFilters((filters) => {
-                                        return { ...filters, sort: 'old' }
+                                        return { ...filters, sort: 'Old' }
                                     })
                                     filterReset()
                                 }}>Old to New</div>
@@ -358,10 +383,10 @@ function Filters(props) {
                                 }
                             }} >Status</div>
                             {filterEnabler.isStatus && <div className="status_content" >
-                                <div onClick={() => statusClick('pending')}>Pending</div>
-                                <div onClick={() => statusClick('completed')}>Completed</div>
-                                <div onClick={() => statusClick('delayed')}>Delayed</div>
-                                <div onClick={() => statusClick('cancelled')}>Cancelled</div>
+                                <div onClick={() => statusClick('Pending')}>Pending</div>
+                                <div onClick={() => statusClick('Completed')}>Completed</div>
+                                <div onClick={() => statusClick('Delayed')}>Delayed</div>
+                                <div onClick={() => statusClick('Cwancelled')}>Cancelled</div>
                             </div>}
                         </div>
 
