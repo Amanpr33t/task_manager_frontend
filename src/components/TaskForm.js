@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { LoadingActions } from "../store/slices/loading-slice";
 import { BlurActions } from "../store/slices/blur_slice";
-import { ErrorModalActions } from "../store/slices/errorModal_slice";
+import { ErrorActions } from "../store/slices/error-slice";
 import { FiltersAppliedActions } from "../store/slices/filtersApplied-slice";
 import { TaskDataActions } from "../store/slices/taskData-slice";
 import { AddTaskActions } from "../store/slices/addTask-slice";
@@ -23,26 +23,31 @@ function TaskForm() {
     const [completionDate, setCompletionDate] = useState(new Date(Date.now() + 1000 * 60 * 60 * 24));
     const [content, setContent] = useState('')
     const [isContentBlur, setIsContentBlur] = useState(false)
+    const [title, setTitle] = useState('')
+    const [isTitleBlur, setIsTitleBlur] = useState(false)
     const [dateError, setDateError] = useState(false)
 
     useEffect(() => {
         if (!authToken) {
-          navigate('/login_signUp',{ replace: true })
+            navigate('/login_signUp', { replace: true })
         }
-      }, [navigate, authToken])
-    
+    }, [navigate, authToken])
+
     useEffect(() => {
         dispatch(FiltersAppliedActions.setFiltersApplied(false))
         dispatch(TaskDataActions.setTaskData(false))
         dispatch(AddTaskActions.setAddTask(true))
     }, [dispatch])
 
+   
+
     useEffect(() => {
         if (editInfo.isEdit) {
-            setContent(editInfo.taskInfo)
+            setContent(editInfo.content)
+            setTitle(editInfo.title)
             setCompletionDate(Date.parse(editInfo.completionDate))
         }
-    }, [editInfo.isEdit, editInfo.taskInfo, editInfo.completionDate])
+    }, [editInfo.isEdit, editInfo.content, editInfo.completionDate, editInfo.title])
 
     useEffect(() => {
         if (completionDate > new Date()) {
@@ -56,22 +61,30 @@ function TaskForm() {
         e.preventDefault()
         if (content.trim().length === 0 || content.trim().length > 160) {
             return setIsContentBlur(true)
+        } else if (title.trim().length === 0 || title.trim().length > 50) {
+            return setIsTitleBlur(true)
+        } else if((content.trim().length === 0 || content.trim().length > 160)&&(title.trim().length === 0 || title.trim().length > 50)){
+            setIsContentBlur(true)
+            setIsTitleBlur(true)
+            return
         }
-        if (!dateError && (content.toString().trim().length < 160 || content.toString().trim().length > 0)) {
+        if (!dateError ) {
             dispatch(LoadingActions.setLoading(true))
+            dispatch(ErrorActions.setError(false))
             dispatch(BlurActions.setBlur(true))
             try {
                 const body = {
-                    taskInfo: content.toString(),
+                    title:title.toString(),
+                    content: content.toString(),
                     completionDate
                 }
                 let url
                 let method
                 if (editInfo.isEdit) {
-                    url = `http://localhost:3001/task/editTask/${editInfo.taskId}`
+                    url = `https://tasks-skak.onrender.com/task/editTask/${editInfo.taskId}`
                     method = 'PATCH'
                 } else {
-                    url = 'http://localhost:3001/task/addTask'
+                    url = 'https://tasks-skak.onrender.com/task/addTask'
                     method = 'POST'
                 }
                 const response = await fetch(url, {
@@ -89,21 +102,21 @@ function TaskForm() {
                 if (data.status === 'ok') {
                     dispatch(EditActions.setEdit({
                         isEdit: false,
-                        taskInfo: null,
+                        title:null,
+                        content: null,
                         completionDate: null,
                         taskId: null
                     }))
                     navigate('/', { replace: true })
                     dispatch(BlurActions.setBlur(false))
+                    dispatch(LoadingActions.setLoading(false))
                 } else {
                     throw new Error('Some error occured')
                 }
             } catch (error) {
                 dispatch(LoadingActions.setLoading(false))
-                dispatch(ErrorModalActions.setErrorModal({
-                    isErrorModal: true,
-                    message: 'Some error occured.'
-                }))
+                dispatch(ErrorActions.setError(true))
+                navigate('/error', { replace: true })
                 dispatch(BlurActions.setBlur(true))
             }
         }
@@ -114,6 +127,14 @@ function TaskForm() {
             {!isLoading && <div className={`task_outer_container ${isBlur ? 'blur' : null}`}>
                 <div className="task_form">
                     <form >
+
+                        <label htmlFor="title">Title</label>
+                        <input style={{ 'fontSize': '18px' }} type="text" className="title_input" id="title" name="title" placeholder="Enter title here..." value={title} onChange={(e) => {
+                            setTitle(e.target.value.trimStart())
+                            setIsTitleBlur(false)
+                        }} onBlur={() => setIsTitleBlur(true)}></input>
+                        {isTitleBlur && (title.toString().trim().length > 50 || title.toString().trim().length === 0) && <p>{title.toString().trim().length > 50 ? 'Length of title should not be more than 50 characters' : 'Enter a title'}</p>}
+
                         <label htmlFor="content">Content</label>
                         <textarea style={{ 'fontSize': '18px' }} className="text_input" id="content" name="content" placeholder="Enter content here..." rows={7} value={content} onChange={(e) => {
                             setContent(e.target.value.trimStart())

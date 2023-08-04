@@ -45,7 +45,7 @@
 }
 
 .blur {
-    filter: blur(3px);
+    filter: blur(8px);
 }
 
 .task_button {
@@ -58,6 +58,11 @@
     font-size: 15px;
     padding: 5px 2px 5px 2px;
     font-weight: 600;
+    background-color: rgb(57, 142, 57);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .task_button button:hover {
@@ -65,6 +70,32 @@
 }
 .date_picker{
     width: 166px;
+}
+
+.back_home{
+    width: 100%;
+    position: fixed;
+    top: 60px;
+    height: 50px;
+    background-color: white;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+}
+.back_home button{
+    background-color: green;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    padding: 3px;
+    color: white;
+    margin-left: 10px;
+}
+.back_home button:hover{
+    cursor: pointer;
+}
+.content_label{
+    margin-top: 10px;
 }
 @media screen and (max-width:434px) {
     

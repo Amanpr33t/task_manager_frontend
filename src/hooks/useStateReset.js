@@ -1,7 +1,6 @@
 
 import { LoadingActions } from "../store/slices/loading-slice";
 import { BlurActions } from "../store/slices/blur_slice";
-import { ErrorModalActions } from "../store/slices/errorModal_slice";
 import { DeleteTasksActions } from "../store/slices/deleteTasks";
 import { FiltersActions } from "../store/slices/filters-slice";
 import { FiltersAppliedActions } from "../store/slices/filtersApplied-slice";
@@ -18,10 +17,6 @@ const useStateReset = () => {
         dispatch(AddTaskActions.setAddTask(false))
         dispatch(BlurActions.setBlur(false))
         dispatch(DeleteTasksActions.setDeleteTasks(false))
-        dispatch(ErrorModalActions.setErrorModal({
-            isErrorModal: false,
-            message: ''
-        }))
         dispatch(FiltersActions.setFilters({
             sort: null,
             year: null,
@@ -36,7 +31,7 @@ const useStateReset = () => {
         dispatch(TaskDataActions.setTaskData(false))
         dispatch(EditActions.setEdit({
             isEdit: false,
-            taskInfo: null,
+            content: null,
             completionDate: null,
             taskId: null
         }))

@@ -3,7 +3,8 @@
     width: 100%;
     display: flex;
     justify-content: center;
-    
+    flex-direction: column;
+    align-items: center;
 }
 
 .loginSignUp_container form {
@@ -18,36 +19,52 @@
     font-weight: 600;
     margin-top: 20px;
 }
+.loginSignUp_container h4{
+    margin: 0px;
+    color: red;
+}
 
-.email_input,.password_input {
+.email_input,
+.password_input {
     height: 25px;
     font-size: 15px;
     width: 100%;
-    padding:0px;
+    padding: 0px;
 }
-.loginSignUpButton{
+
+.loginSignUpButton {
     display: flex;
     justify-content: center;
 }
-.loginSignUpButton button{
+
+.loginSignUpButton button {
     padding: 3px;
     font-size: 17px;
     margin-top: 20px;
 }
-.loginSignUpButton button:hover{
+
+.loginSignUpButton button:hover {
     cursor: pointer;
 }
-.error_input{
+
+.error_input {
     margin-top: 0px;
     margin-bottom: 0px;
     color: red;
 }
+
 .blur {
-    filter: blur(3px);
+    filter: blur(8px);
 }
 
 @media screen and (max-width:460px) {
-    .email_input,.password_input {
+
+    .loginSignUp_container form {
+        width: 90%;
+    }
+
+    .email_input,
+    .password_input {
         height: 25px;
         font-size: 15px;
         width: 100%;

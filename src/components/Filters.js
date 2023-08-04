@@ -23,6 +23,7 @@ function Filters(props) {
     const isFiltersApplied = useSelector(state => state.FiltersApplied.isFiltersApplied)
     const isTaskData = useSelector(state => state.TaskData.isTaskData)
     const isLoading = useSelector(state => state.Loading.isLoading)
+    const isError = useSelector(state => state.Error.isError)
 
     const [daysInMonth, setDaysInMonth] = useState(oddDays)
     const [isLeapYear, setIsLeapYear] = useState(false)
@@ -33,23 +34,28 @@ function Filters(props) {
         date: null,
         status: null
     })
-    const [applyButton, setApplyButton] = useState(false)
-
-    const allFalseFilters = {
-        isSortList: false,
-        isYearList: false,
-        isMonthList: false,
-        isDateList: false,
-        isStatus: false
-    }
-
-    const filterReset = () => filterSetterFunction({
-        isFilters: true,
-        ...allFalseFilters
-    })
+    const [noFilterError, setNoFilterError] = useState(false)
+    const [isFilterFirstClick, setIsFilterFirstClick] = useState(false)
 
     useEffect(() => {
-        if (!filterEnabler.isFilters) {
+        if (isFilterFirstClick) {
+            if (!appliedFilters.sort && !appliedFilters.date && !appliedFilters.month && !appliedFilters.status && !appliedFilters.year) {
+                setNoFilterError(true)
+            } else {
+                setNoFilterError(false)
+            }
+        }
+    }, [appliedFilters.sort, appliedFilters.date, appliedFilters.month, appliedFilters.status, appliedFilters.year, isFilterFirstClick])
+
+    useEffect(() => {
+        if (!filterEnabler) {
+            setIsFilterFirstClick(false)
+            setNoFilterError(false)
+        }
+    }, [filterEnabler])
+
+    useEffect(() => {
+        if (!filterEnabler) {
             setAppliedFilters({
                 sort: null,
                 year: null,
@@ -61,15 +67,7 @@ function Filters(props) {
         } else {
             dispatch(BlurActions.setBlur(true))
         }
-    }, [filterEnabler.isFilters, dispatch])
-
-    useEffect(() => {
-        if (appliedFilters.sort || appliedFilters.year || appliedFilters.month || appliedFilters.date || appliedFilters.status) {
-            setApplyButton(true)
-        } else {
-            setApplyButton(false)
-        }
-    }, [appliedFilters.sort, appliedFilters.year, appliedFilters.month, appliedFilters.date, appliedFilters.status])
+    }, [filterEnabler, dispatch])
 
     const yearClick = (data) => {
         if (data.year === 2024 || data.year === 2028) {
@@ -83,7 +81,6 @@ function Filters(props) {
             return { ...filters, year: data.year, date: null }
         })
         setIsLeapYear(data.isLeap)
-        filterReset()
     }
 
     const monthClick = (data) => {
@@ -91,18 +88,13 @@ function Filters(props) {
         setAppliedFilters((filters) => {
             return { ...filters, month: data.month, date: null }
         })
-        filterReset()
-    }
-
-    const statusClick = (status) => {
-        setAppliedFilters((filters) => {
-            return { ...filters, status: status }
-        })
-        filterReset()
     }
 
 
     const applyFiltersFunction = async () => {
+        if (!appliedFilters.sort && !appliedFilters.date && !appliedFilters.month && !appliedFilters.status && !appliedFilters.year) {
+            return setNoFilterError(true)
+        }
         const monthNumber = () => {
             if (appliedFilters.month === 'January') {
                 return 'month=0'
@@ -171,263 +163,140 @@ function Filters(props) {
             }
         }
         dispatch(QueryActions.setQuery(query))
-        filterSetterFunction({
-            isFilters: false,
-            ...allFalseFilters
-        })
+        filterSetterFunction(false)
+        setIsFilterFirstClick(false)
+        setNoFilterError(false)
     }
-
     return (
         <React.Fragment>
-            {!isLoading && <div className={`filter_container`} >
+            {!isLoading && !isError && <div className={`filter_container`} >
                 {!isDeleteTasks && <div className="button_container">
                     {!isFiltersApplied && isTaskData && !isAddTask && <button onClick={(e) => {
                         e.stopPropagation()
-                        filterSetterFunction({
-                            isFilters: true,
-                            ...allFalseFilters
-                        })
+                        filterSetterFunction(true)
                         dispatch(FiltersAppliedActions.setFiltersApplied(false))
                     }
                     } >Filters</button>}
 
-                    {!filterEnabler.isFilters && !isFiltersApplied && !isAddTask && authToken && <button onClick={() => navigate('/task_form', { replace: true })}>Add task</button>}
+                    {!filterEnabler && !isFiltersApplied && !isAddTask && authToken && <button onClick={() => navigate('/task_form', { replace: true })}>Add task</button>}
 
                     {isFiltersApplied && !isAddTask && <button onClick={() => {
                         dispatch(QueryActions.setQuery(''))
                         dispatch(AddTaskActions.setAddTask(false))
                         dispatch(FiltersAppliedActions.setFiltersApplied(false))
-                        filterSetterFunction({
-                            isFilters: false,
-                            isSortList: false,
-                            isYearList: false,
-                            isMonthList: false,
-                            isDateList: false,
-                            isStatus: false
-                        })
+                        filterSetterFunction(false)
                     }}>Remove Filters</button>}
 
                     {isAddTask && <button onClick={() => navigate('/', { replace: true })}>Back to Home</button>}
                 </div>}
 
-                {filterEnabler.isFilters &&
-                    <div className="filter_options">
+                {filterEnabler &&
+                    <> <div className="filter_options">
 
-                        <div className="dropdown" onClick={(e) => e.stopPropagation()}>
-                            <div className="filter_heading" onClick={() => {
-                                if (filterEnabler.isSortList) {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters
-                                    })
-                                } else {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters,
-                                        isSortList: true
-                                    })
-                                }
-                            }} >Sort</div>
-                            {filterEnabler.isSortList && <div className="sort_content" >
-                                <div onClick={() => {
-                                    setAppliedFilters((filters) => {
-                                        return { ...filters, sort: 'New' }
-                                    })
-                                    filterReset()
-                                }}>New to Old</div>
-                                <div onClick={() => {
-                                    setAppliedFilters((filters) => {
-                                        return { ...filters, sort: 'Old' }
-                                    })
-                                    filterReset()
-                                }}>Old to New</div>
-                            </div>}
-                        </div>
 
-                        <div className="dropdown" onClick={(e) => e.stopPropagation()}>
-                            <div className="filter_heading" onClick={() => {
-                                if (filterEnabler.isYearList) {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters
-                                    })
-                                } else {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters,
-                                        isYearList: true
-                                    })
-                                }
-                            }}>Year</div>
-                            {filterEnabler.isYearList && <div className="year_content" >
-                                <div onClick={() => yearClick({ year: 2023, isLeap: false })}>2023</div>
-                                <div onClick={() => yearClick({ year: 2024, isLeap: true })}>2024</div>
-                                <div onClick={() => yearClick({ year: 2025, isLeap: false })}>2025</div>
-                                <div onClick={() => yearClick({ year: 2026, isLeap: false })}>2026</div>
-                                <div onClick={() => yearClick({ year: 2027, isLeap: false })}>2027</div>
-                                <div onClick={() => yearClick({ year: 2028, isLeap: true })}>2028</div>
-                                <div onClick={() => yearClick({ year: 2029, isLeap: false })}>2029</div>
-                                <div onClick={() => yearClick({ year: 2030, isLeap: false })}>2030</div>
-                            </div>}
-                        </div>
+                        <select className="dropdown" onClick={(e) => e.stopPropagation()} onChange={(e) => {
+                            setAppliedFilters((filters) => {
+                                return { ...filters, sort: e.target.value }
+                            })
+                            setIsFilterFirstClick(true)
+                           
+                        }} name="sort" id="sort" defaultValue="Sort By" >
+                            <option value="Sort By" disabled >Sort By</option>
+                            <option value='New' >Newest</option>
+                            <option value='Old' >Oldest</option>
+                        </select>
 
-                        <div className="dropdown" onClick={(e) => e.stopPropagation()}>
-                            <div className="filter_heading" onClick={() => {
-                                if (filterEnabler.isMonthList) {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters
-                                    })
-                                } else {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters,
-                                        isMonthList: true,
-                                    })
-                                }
 
-                            }} >Month</div>
-                            {filterEnabler.isMonthList && <div className="month_content" >
-                                <div onClick={() => monthClick({
-                                    month: 'January',
-                                    oddOrEven: oddDays
-                                })}>January</div>
-                                <div onClick={() => monthClick({
-                                    month: 'February',
-                                    oddOrEven: isLeapYear ? leapDays : nonLeapDays
-                                })}>February</div>
-                                <div onClick={() => monthClick({
-                                    month: 'March',
-                                    oddOrEven: oddDays
-                                })}>March</div>
-                                <div onClick={() => monthClick({
-                                    month: 'April',
-                                    oddOrEven: evenDays
-                                })}>April</div>
-                                <div onClick={() => monthClick({
-                                    month: 'May',
-                                    oddOrEven: oddDays
-                                })}>May</div>
-                                <div onClick={() => monthClick({
-                                    month: 'June',
-                                    oddOrEven: evenDays
-                                })}>June</div>
-                                <div onClick={() => monthClick({
-                                    month: 'July',
-                                    oddOrEven: oddDays
-                                })}>July</div>
-                                <div onClick={() => monthClick({
-                                    month: 'August',
-                                    oddOrEven: oddDays
-                                })}>August</div>
-                                <div onClick={() => monthClick({
-                                    month: 'September',
-                                    oddOrEven: evenDays
-                                })}>September</div>
-                                <div onClick={() => monthClick({
-                                    month: 'October',
-                                    oddOrEven: oddDays
-                                })}>October</div>
-                                <div onClick={() => monthClick({
-                                    month: 'November',
-                                    oddOrEven: evenDays
-                                })}>November</div>
-                                <div onClick={() => monthClick({
-                                    month: 'December',
-                                    oddOrEven: oddDays
-                                })}>December</div>
-                            </div>}
-                        </div>
+                        <select className="dropdown" onClick={(e) => e.stopPropagation()} onChange={(e) => {
+                            setIsFilterFirstClick(true)
+                            let isLeap
+                            if (parseInt(e.target.value % 4 === 0)) {
+                                isLeap = true
+                            } else {
+                                isLeap = false
+                            }
+                            yearClick({ year: parseInt(e.target.value), isLeap })
+                           
+                        }} name="year" id="year" defaultValue="Year" >
+                            <option value="Year" disabled >Year</option>
+                            <option value='2023' >2023</option>
+                            <option value='2024' >2024</option>
+                            <option value='2025' >2025</option>
+                            <option value='2026' >2026</option>
+                            <option value='2027' >2027</option>
+                            <option value='2028' >2028</option>
+                            <option value='2029' >2029</option>
+                        </select>
 
-                        <div className="dropdown" onClick={(e) => e.stopPropagation()}>
-                            <div className="filter_heading" onClick={() => {
-                                if (filterEnabler.isDateList) {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters
-                                    })
-                                } else {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters,
-                                        isDateList: true
-                                    })
-                                }
-                            }} >Date</div>
-                            <div className="date_content" >
-                                {filterEnabler.isDateList && daysInMonth.map((date) => {
-                                    return <div onClick={() => {
-                                        setAppliedFilters((filters) => {
-                                            return { ...filters, date }
-                                        })
-                                        filterReset()
-                                    }} key={date}>{date}</div>
-                                })}
-                            </div>
-                        </div>
+                        <select className="dropdown" onClick={(e) => e.stopPropagation()} onChange={(e) => {
+                            setIsFilterFirstClick(true)
+                            let oddOrEven
+                            if (e.target.value.split('$')[1] === 'odd') {
+                                oddOrEven = oddDays
+                            } else if (e.target.value.split('$')[1] === 'even') {
+                                oddOrEven = evenDays
+                            } else if (e.target.value.split('$')[1] === 'leap') {
+                                oddOrEven = leapDays
+                            } else {
+                                oddOrEven = nonLeapDays
+                            }
+                            monthClick({
+                                month: e.target.value.split('$')[0],
+                                oddOrEven: oddOrEven
+                            })
+                        }} name="month" id="month" defaultValue="Month" >
+                            <option disabled >Year</option>
+                            <option value="January$odd" >January</option>
+                            <option value={`February$${isLeapYear ? 'leap' : 'notLeap'}`} >February</option>
+                            <option value='March$odd' >March</option>
+                            <option value='April$even' >April</option>
+                            <option value='May$odd' >May</option>
+                            <option value='June$even' >June</option>
+                            <option value='July$odd' >July</option>
+                            <option value='August$odd' >August</option>
+                            <option value='September$even' >September</option>
+                            <option value='October$odd' >October</option>
+                            <option value='December$even' >November</option>
+                            <option value='December$odd' >December</option>
+                        </select>
 
-                        <div className="dropdown" onClick={(e) => e.stopPropagation()}>
-                            <div className="filter_heading" onClick={() => {
-                                if (filterEnabler.isStatus) {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters
-                                    })
-                                } else {
-                                    filterSetterFunction({
-                                        isFilters: true,
-                                        ...allFalseFilters,
-                                        isStatus: true
-                                    })
-                                }
-                            }} >Status</div>
-                            {filterEnabler.isStatus && <div className="status_content" >
-                                <div onClick={() => statusClick('Pending')}>Pending</div>
-                                <div onClick={() => statusClick('Completed')}>Completed</div>
-                                <div onClick={() => statusClick('Delayed')}>Delayed</div>
-                                <div onClick={() => statusClick('Cwancelled')}>Cancelled</div>
-                            </div>}
-                        </div>
+                        <select className="dropdown" onClick={(e) => e.stopPropagation()} onChange={(e) => {
+                            setIsFilterFirstClick(true)
+                            setAppliedFilters((filters) => {
+                                return { ...filters, date: e.target.value }
+                            })
+                           
+                        }} name="date" id="date" defaultValue="Date" >
+                            <option disabled >Date</option>
+                            {daysInMonth.map(date => {
+                                return <option value={date} key={date} >{date}</option>
+                            })}
 
-                    </div>}
+                        </select>
 
-                {filterEnabler.isFilters && <div className="selected_filters" onClick={(e) => e.stopPropagation()}>
-                    {appliedFilters.sort && <div className="selected_sort">
-                        <p >{appliedFilters.sort}</p>
-                        <p onClick={() => setAppliedFilters((filters) => {
-                            return { ...filters, sort: null }
-                        })}>X</p>
-                    </div>}
-                    {appliedFilters.year && <div className="selected_year">
-                        <p>{appliedFilters.year}</p>
-                        <p onClick={() => setAppliedFilters((filters) => {
-                            return { ...filters, year: null }
-                        })}>X</p>
-                    </div>}
-                    {appliedFilters.month && <div className="selected_month">
-                        <p >{appliedFilters.month}</p>
-                        <p onClick={() => setAppliedFilters((filters) => {
-                            return { ...filters, month: null }
-                        })}>X</p>
-                    </div>}
-                    {appliedFilters.date && <div className="selected_date">
-                        <p>{appliedFilters.date}</p>
-                        <p onClick={() => setAppliedFilters((filters) => {
-                            return { ...filters, date: null }
-                        })}>X</p>
-                    </div>}
-                    {appliedFilters.status && <div className="selected_status">
-                        <p>{appliedFilters.status}</p>
-                        <p onClick={() => setAppliedFilters(filters => {
-                            return { ...filters, status: null }
-                        })}>X</p>
-                    </div>}
-                </div>
-                }
-                {applyButton && <button onClick={e => {
-                    e.stopPropagation()
-                    applyFiltersFunction()
-                }} className="apply_button">Apply</button>}
+
+                        <select className="dropdown" onClick={(e) => e.stopPropagation()} onChange={(e) => {
+                            setIsFilterFirstClick(true)
+                            setAppliedFilters((filters) => {
+                                return { ...filters, status: e.target.value }
+                            })
+                           
+                        }} name="status" id="status" defaultValue="Status" >
+                            <option disabled >Status</option>
+                            <option value='Pending' >Pending</option>
+                            <option value='Completed' >Completed</option>
+                            <option value='Delayed' >Delayed</option>
+                            <option value='Cancelled' >Cancelled</option>
+                        </select>
+
+
+                    </div>
+                        {noFilterError && <p>No filter selected</p>}
+                        <button onClick={e => {
+                            e.stopPropagation()
+                            applyFiltersFunction()
+                        }} className="apply_button">Apply</button>
+                    </>}
             </div>}
         </React.Fragment>
     )

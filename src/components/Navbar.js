@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { LoginActions } from "../store/slices/login-slice";
 import { useNavigate } from "react-router-dom";
 import { BlurActions } from "../store/slices/blur_slice";
-import { ErrorModalActions } from "../store/slices/errorModal_slice";
+import { ErrorActions } from "../store/slices/error-slice";
 import { FiltersAppliedActions } from "../store/slices/filtersApplied-slice";
 import { LoadingActions } from "../store/slices/loading-slice";
 import { QueryActions } from "../store/slices/query_slice";
@@ -19,10 +19,11 @@ const Navbar = () => {
     const authToken = localStorage.getItem('task_auth_token')
 
     const logout = async () => {
-        dispatch(LoadingActions.setLoading(true))
         dispatch(LogoutClickActions.setLogoutClick(true))
+        dispatch(LoadingActions.setLoading(true))
+        dispatch(ErrorActions.setError(false))
         if (authToken) {
-            const url = `http://localhost:3001/user/logout`
+            const url = `https://tasks-skak.onrender.com/user/logout`
             try {
                 const response = await fetch(url, {
                     method: 'PATCH',
@@ -36,6 +37,7 @@ const Navbar = () => {
                 }
                 const data = await response.json()
                 if (data.status === 'logged_out' || data.status === 'session_expired') {
+                    dispatch(LoadingActions.setLoading(false))
                     localStorage.removeItem('task_auth_token')
                     navigate('/login_signUp', { replace: true })
 
@@ -43,11 +45,8 @@ const Navbar = () => {
                     throw new Error('Some error occured')
                 }
             } catch (error) {
-                dispatch(LoadingActions.setLoading(false))
-                dispatch(ErrorModalActions.setErrorModal({
-                    isErrorModal: true,
-                    message: 'Some error occured.'
-                }))
+                dispatch(ErrorActions.setError(true))
+                navigate('/error', { replace: true })
                 dispatch(BlurActions.setBlur(true))
             }
         } else {

@@ -3,7 +3,7 @@ import FiltersSlice from "./slices/filters-slice";
 import BlurSlice from "./slices/blur_slice";
 import LoginSlice from "./slices/login-slice";
 import LoadingSlice from "./slices/loading-slice";
-import ErrorModalSlice from "./slices/errorModal_slice";
+import ErrorSlice from "./slices/error-slice";
 import DeleteTasksSlice from "./slices/deleteTasks";
 import QuerySlice from "./slices/query_slice";
 import FiltersAppliedSlice from "./slices/filtersApplied-slice";
@@ -19,7 +19,7 @@ const store = configureStore({
     Blur: BlurSlice.reducer,
     Login: LoginSlice.reducer,
     Loading: LoadingSlice.reducer,
-    ErrorModal: ErrorModalSlice.reducer,
+    Edit: EditSlice.reducer,
     DeleteTasks: DeleteTasksSlice.reducer,
     Query: QuerySlice.reducer,
     FiltersApplied: FiltersAppliedSlice.reducer,
@@ -27,7 +27,7 @@ const store = configureStore({
     TaskData: TaskDataSlice.reducer,
     LogoutClick: LogoutClickSlice.reducer,
     AddTask: AddTaskSlice.reducer,
-    Edit: EditSlice.reducer
+    Error:ErrorSlice.reducer
   }
 })
 

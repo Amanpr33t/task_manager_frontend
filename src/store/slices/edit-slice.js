@@ -2,9 +2,10 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     isEdit: false,
-    taskInfo: null,
+    title: null,
+    content: null,
     completionDate: null,
-    taskId:null
+    taskId: null
 }
 
 const EditSlice = createSlice({
@@ -13,7 +14,8 @@ const EditSlice = createSlice({
     reducers: {
         setEdit(state, action) {
             state.isEdit = action.payload.isEdit
-            state.taskInfo = action.payload.taskInfo
+            state.title = action.payload.title
+            state.content = action.payload.content
             state.completionDate = action.payload.completionDate
             state.taskId = action.payload.taskId
         }

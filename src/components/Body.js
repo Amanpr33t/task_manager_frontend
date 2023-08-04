@@ -9,14 +9,14 @@ import { FiltersAppliedActions } from '../store/slices/filtersApplied-slice';
 import { LoadingActions } from '../store/slices/loading-slice';
 import { ResetCheckboxActions } from '../store/slices/resetCheckbox-slice';
 import { TaskDataActions } from '../store/slices/taskData-slice';
-import { ErrorModalActions } from '../store/slices/errorModal_slice';
 import { BlurActions } from '../store/slices/blur_slice';
 import { LogoutClickActions } from '../store/slices/logoutClick_slice';
 import { AddTaskActions } from '../store/slices/addTask-slice';
 import { EditActions } from '../store/slices/edit-slice';
 import dateMaker from '../utils/dateMaker';
+import { ErrorActions } from '../store/slices/error-slice';
 
-function Body() {
+function Body({ filterEnabler }) {
 
     const authToken = localStorage.getItem('task_auth_token')
     const dispatch = useDispatch()
@@ -30,6 +30,7 @@ function Body() {
     const query = useSelector(state => state.Query.query)
     const isLoading = useSelector(state => state.Loading.isLoading)
     const isResetCheckbox = useSelector(state => state.ResetCheckbox.isResetCheckbox)
+    
 
     const checkBoxHandler = (id, e) => {
         if (e.target.checked) {
@@ -49,16 +50,17 @@ function Body() {
 
     useEffect(() => {
         if (!authToken) {
-          navigate('/login_signUp',{ replace: true })
+            navigate('/login_signUp', { replace: true })
         }
-      }, [navigate, authToken])
+    }, [navigate, authToken])
 
     useEffect(() => {
         dispatch(AddTaskActions.setAddTask(false))
         dispatch(FiltersAppliedActions.setFiltersApplied(false))
         dispatch(EditActions.setEdit({
             isEdit: false,
-            taskInfo: null,
+            title: null,
+            content: null,
             completionDate: null,
             taskId: null
         }))
@@ -84,7 +86,8 @@ function Body() {
 
     const fetchTasks = useCallback(async () => {
         dispatch(LoadingActions.setLoading(true))
-        const url = `http://localhost:3001/task/getAllTasks${query ? query : ''}`
+        dispatch(ErrorActions.setError(false))
+        const url = `https://tasks-skak.onrender.com/task/getAllTasks${query ? query : ''}`
         try {
             const response = await fetch(url, {
                 method: 'GET',
@@ -98,6 +101,7 @@ function Body() {
             }
             const data = await response.json()
             if (data.status === 'session_expired') {
+                dispatch(LoadingActions.setLoading(false))
                 navigate('/login_signUp', { replace: true })
                 dispatch(LogoutClickActions.setLogoutClick(true))
             } else if (data.status === 'ok') {
@@ -115,11 +119,8 @@ function Body() {
                 throw new Error('Some error occured')
             }
         } catch (error) {
-            dispatch(LoadingActions.setLoading(false))
-            dispatch(ErrorModalActions.setErrorModal({
-                isErrorModal: true,
-                message: 'Some error occured.'
-            }))
+            dispatch(ErrorActions.setError(true))
+            navigate('/error', { replace: true })
             dispatch(BlurActions.setBlur(true))
         }
     }, [authToken, query, dispatch, navigate])
@@ -134,11 +135,12 @@ function Body() {
 
     const deleteTask = async (tasks) => {
         dispatch(LoadingActions.setLoading(true))
+        dispatch(ErrorActions.setError(false))
         let url
         if (typeof tasks === 'string' && tasks.toString().startsWith('$')) {
-            url = `http://localhost:3001/task/deleteSelectedTasks/${tasks}`
+            url = `https://tasks-skak.onrender.com/task/deleteSelectedTasks/${tasks}`
         } else {
-            url = `http://localhost:3001/task/deleteTask/${tasks}`
+            url = `https://tasks-skak.onrender.com/task/deleteTask/${tasks}`
         }
         try {
             const response = await fetch(url, {
@@ -162,19 +164,17 @@ function Body() {
                 throw new Error('Some error occured')
             }
         } catch (error) {
-            dispatch(LoadingActions.setLoading(false))
-            dispatch(ErrorModalActions.setErrorModal({
-                isErrorModal: true,
-                message: 'Some error occured.'
-            }))
+            dispatch(ErrorActions.setError(true))
+            navigate('/error', { replace: true })
             dispatch(BlurActions.setBlur(true))
         }
     }
 
     const editTask = async ({ taskId, taskData }) => {
         dispatch(LoadingActions.setLoading(true))
+        dispatch(ErrorActions.setError(false))
         try {
-            const response = await fetch(`http://localhost:3001/task/editTask/${taskId}`, {
+            const response = await fetch(`https://tasks-skak.onrender.com/task/editTask/${taskId}`, {
                 method: 'PATCH',
                 body: JSON.stringify(taskData),
                 headers: {
@@ -192,15 +192,11 @@ function Body() {
                 throw new Error('Some error occured')
             }
         } catch (error) {
-            dispatch(LoadingActions.setLoading(false))
-            dispatch(ErrorModalActions.setErrorModal({
-                isErrorModal: true,
-                message: 'Some error occured.'
-            }))
+            dispatch(ErrorActions.setError(true))
+            navigate('/error', { replace: true })
             dispatch(BlurActions.setBlur(true))
         }
     }
-
 
 
     return (
@@ -212,14 +208,18 @@ function Body() {
                     <p>No tasks found.</p>
                 </div>}
                 {!isLoading && taskData && taskData.count > 0 && taskData.allTasks.map((task) => {
-                    return <div className='task_body' key={task._id} onClick={e => e.stopPropagation()}>
+                    return <div className='task_body' key={task._id} >
                         <p className={`task-status ${task.status}`}>{task.status}</p>
-                        <input type="checkbox" id={task._id} onChange={e => {
-                            checkBoxHandler(task._id, e)
-                        }} name="task_checkbox" onClick={() => dispatch(ResetCheckboxActions.setResetCheckbox(false))}></input>
-                        <p className='task-content'>{task.taskInfo}</p>
+                        {!filterEnabler && <input type="checkbox" id={task._id} onChange={e => checkBoxHandler(task._id, e)} name="task_checkbox" onClick={(e) => {
+                            e.stopPropagation()
+                            dispatch(ResetCheckboxActions.setResetCheckbox(false))
+                        }} />}
+                        <h3 className='title_heading'>Title:</h3>
+                        <p>{task.title}</p>
+                        <h3>Description:</h3>
+                        <p className='task-content'>{task.content}</p>
                         <div className='completion_date'>
-                            <p>Completion Date:</p>
+                            <h3>Completion Date:</h3>
                             <p>{dateMaker(task.completionDate)}</p>
                         </div>
                         {!isDeleteTasks && <div className='task-update'>
@@ -227,14 +227,18 @@ function Body() {
                             {task.status !== 'completed' && task.status !== 'cancelled' && <><button onClick={() => {
                                 dispatch(EditActions.setEdit({
                                     isEdit: true,
-                                    taskInfo: task.taskInfo,
+                                    title: task.title,
+                                    content: task.content,
                                     completionDate: task.completionDate,
                                     taskId: task._id
                                 }))
                                 navigate('/task_form', { replace: true })
                             }}><AiFillEdit /></button>
-                                <button onClick={() => editTask({ taskId: task._id, taskData: { status: 'completed' } })} >Task Completed</button>
-                                <button onClick={() => editTask({ taskId: task._id, taskData: { status: 'cancelled' } })}>Cancel Task</button></>}
+                                <select onClick={(e) => e.stopPropagation()} name="update" id="update" defaultValue="Update" onChange={(e) => editTask({ taskId: task._id, taskData: { status: e.target.value } })}>
+                                    <option value="Update" disabled >Update Status</option>
+                                    <option value='completed' >Completed</option>
+                                    <option value='cancelled' >Cancel</option>
+                                </select></>}
                         </div>}
                     </div>
                 })}
