@@ -23,7 +23,7 @@ const Navbar = () => {
         dispatch(LoadingActions.setLoading(true))
         dispatch(ErrorActions.setError(false))
         if (authToken) {
-            const url = `https://tasks-skak.onrender.com/user/logout`
+            const url = `https://taskmanagar-backend.onrender.com/user/logout`
             try {
                 const response = await fetch(url, {
                     method: 'PATCH',

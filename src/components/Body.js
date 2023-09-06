@@ -87,7 +87,7 @@ function Body({ filterEnabler }) {
     const fetchTasks = useCallback(async () => {
         dispatch(LoadingActions.setLoading(true))
         dispatch(ErrorActions.setError(false))
-        const url = `https://tasks-skak.onrender.com/task/getAllTasks${query ? query : ''}`
+        const url = `https://taskmanagar-backend.onrender.com/task/getAllTasks${query ? query : ''}`
         try {
             const response = await fetch(url, {
                 method: 'GET',
@@ -105,7 +105,7 @@ function Body({ filterEnabler }) {
                 navigate('/login_signUp', { replace: true })
                 dispatch(LogoutClickActions.setLogoutClick(true))
             } else if (data.status === 'ok') {
-                dispatch(LoadingActions.setLoading(false))
+                
                 if (query) {
                     dispatch(FiltersAppliedActions.setFiltersApplied(true))
                 }
@@ -115,6 +115,7 @@ function Body({ filterEnabler }) {
                     dispatch(TaskDataActions.setTaskData(true))
                 }
                 setTaskData(data)
+                dispatch(LoadingActions.setLoading(false))
             } else {
                 throw new Error('Some error occured')
             }
@@ -138,9 +139,9 @@ function Body({ filterEnabler }) {
         dispatch(ErrorActions.setError(false))
         let url
         if (typeof tasks === 'string' && tasks.toString().startsWith('$')) {
-            url = `https://tasks-skak.onrender.com/task/deleteSelectedTasks/${tasks}`
+            url = `https://taskmanagar-backend.onrender.com/task/deleteSelectedTasks/${tasks}`
         } else {
-            url = `https://tasks-skak.onrender.com/task/deleteTask/${tasks}`
+            url = `https://taskmanagar-backend.onrender.com/task/deleteTask/${tasks}`
         }
         try {
             const response = await fetch(url, {
@@ -174,7 +175,7 @@ function Body({ filterEnabler }) {
         dispatch(LoadingActions.setLoading(true))
         dispatch(ErrorActions.setError(false))
         try {
-            const response = await fetch(`https://tasks-skak.onrender.com/task/editTask/${taskId}`, {
+            const response = await fetch(`https://taskmanagar-backend.onrender.com/task/editTask/${taskId}`, {
                 method: 'PATCH',
                 body: JSON.stringify(taskData),
                 headers: {

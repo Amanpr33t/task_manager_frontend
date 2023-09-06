@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import './TaskForm.css'
+import './TaskForm.css';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
@@ -81,10 +81,10 @@ function TaskForm() {
                 let url
                 let method
                 if (editInfo.isEdit) {
-                    url = `https://tasks-skak.onrender.com/task/editTask/${editInfo.taskId}`
+                    url = `https://taskmanagar-backend.onrender.com/task/editTask/${editInfo.taskId}`
                     method = 'PATCH'
                 } else {
-                    url = 'https://tasks-skak.onrender.com/task/addTask'
+                    url = 'https://taskmanagar-backend.onrender.com/task/addTask'
                     method = 'POST'
                 }
                 const response = await fetch(url, {

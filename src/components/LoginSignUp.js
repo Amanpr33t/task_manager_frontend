@@ -53,7 +53,7 @@ function LoginSignUp() {
             try {
                 dispatch(ErrorActions.setError(false))
                 dispatch(BlurActions.setBlur(true))
-                const response = await fetch(`https://tasks-skak.onrender.com/user/${isLogin ? 'login' : 'signup'}`, {
+                const response = await fetch(`https://taskmanagar-backend.onrender.com/user/${isLogin ? 'login' : 'signup'}`, {
                     method: 'POST',
                     body: JSON.stringify({ email, password }),
                     headers: {
